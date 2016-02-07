@@ -1,0 +1,23 @@
+{
+  "name": "FoodMob-Node",
+  "version": "1.0.0",
+  "description": "asdf",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FoodMob/FoodMob-Node.git"
+  },
+  "author": "FoodMob",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/FoodMob/FoodMob-Node/issues"
+  },
+  "homepage": "https://github.com/FoodMob/FoodMob-Node",
+  "dependencies": {
+    "restify": "~4.0.3",
+    "mongoose": "~4.4.2"
+  }
+}
