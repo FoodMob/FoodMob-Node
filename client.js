@@ -15,15 +15,31 @@ client.post('/echo/test', { hello: 'world', asdf: {test: 'test'} }, function(err
 })
 ;
 */
-
-user_register_info = { email: 'test2@gmail.com', password: "school", first_name: "Albert", last_name: "Shaw"};
-
-client.post('/user', user_register_info, function(err, req, res, obj) {
-  console.log(req);
-  //assert.ifError(err);
-  console.log('%d -> %j', res.statusCode, res.headers);
-  console.log('%j', obj);
-  console.log(obj.asdf);
-  console.log(obj);
-  client.close();
-});
+var email = 'ashaw596@gmail.com';
+var password = 'school';
+var user_login_info = { email: email, password: password};
+var user_register_info = { email: email, password: password, first_name: "Albert", last_name: "Shaw"};
+function testRegister() {
+  client.post('/user', user_register_info, function(err, req, res, obj) {
+    console.log(req);
+    //assert.ifError(err);
+    console.log('%d -> %j', res.statusCode, res.headers);
+    console.log('%j', obj);
+    console.log(obj.asdf);
+    console.log(obj);
+    client.close();
+  });
+}
+function testLogin() {
+  client.post('/login', user_login_info, function(err, req, res, obj) {
+      console.log(req);
+      //assert.ifError(err);
+      console.log('%d -> %j', res.statusCode, res.headers);
+      console.log('%j', obj);
+      console.log("\n\n");
+      console.log(obj);
+      client.close();
+  });
+}
+testLogin();
+//testRegister();

@@ -11,11 +11,19 @@ var Schema = mongoose.Schema;
 
 // create a schema
 var userSchema = new Schema({
-  email: { type: String, required: true, unique: true },
-  hashed_password: { type: Buffer, required: true },
-  salt: {type: Buffer, required: true},
-  first_name: { type: String, required: true},
-  last_name: { type: String, required: true}
+	email: { type: String, required: true, unique: true },
+	login: {
+		hashed_password: { type: Buffer, required: true },
+		salt: {type: Buffer, required: true},
+		auth_tokens: [{
+			token: {type: String, required: true},
+			expire_time: Date 
+		}]
+	},
+	profile: {
+		first_name: { type: String, required: true},
+		last_name: { type: String, required: true}
+	}
 });
 
 // the schema is useless so far
@@ -43,6 +51,49 @@ function main() {
 	    });
 	}
 
+	function generateAuthToken(callback) {
+		Crypto.randomBytes(40, function(err, buf) {
+	        if (err) throw err;
+
+	        callback(buf.toString('base64'));
+	    });
+	}
+
+	function loginUser(email, password, callback) {
+		User.findOne({ 'email': email}, function (err, user) {
+			if (err || !user) {
+				console.log("login Failed")
+				callback(true);
+			} else {
+				console.log("User Found");
+				Crypto.pbkdf2(password, user.login.salt, 100000, 512, 'sha512', function (err, hash) {
+					if (err) {
+						console.log("login Failed")
+						callback(true);
+					} else if (!user.login.hashed_password.equals(hash)) {
+						console.log("Password didn't match")
+						//console.log(user.login.hashed_password.toString("utf8"));
+						//console.log(hash.toString("utf8"));
+						callback(true);
+					} else {
+						generateAuthToken((string) => {
+							user.login.auth_tokens.push({token: string, expire_time: new Date().setFullYear(new Date().getFullYear() + 2)})
+							user.save((err) => {
+								if (err) {
+									console.log(err);
+									callback(true);
+								} else {
+					  				console.log("login successfully");
+					  				callback(false, string);
+								}
+							});
+						});
+					}
+				});
+			}
+  		});
+	}
+
 
 
 	//register User
@@ -52,23 +103,24 @@ function main() {
 
 		generateSalt(function (salt) {
 
-			  	console.log("salt " + salt);
+		  	console.log("salt " + salt);
 
-				Crypto.pbkdf2(password, salt, 100000, 512, 'sha512', (err, hash) => {
+			Crypto.pbkdf2(password, salt, 100000, 512, 'sha512', function (err, hash) {
 			  	if (err) throw err;
 
-			  	var newUser = User({email: email, hashed_password: hash, salt: salt, first_name: first_name, last_name: last_name});
-
-				console.log("email: %s, hashed: %s, salt: %s", newUser.email, hash, salt);
+			  	var newUser = User({email: email, 
+			  		login: {hashed_password: hash, salt: salt}, 
+			  		profile: {first_name: first_name, last_name: last_name}
+			  	});
 
 				newUser.save(function(err) {
-				  if (err) { //throw err;
-					console.log(err);
-					callback(false);
-				  } else {
-				  	console.log('User created!');
-				  	callback(true);
-				  }
+					if (err) { //throw err;
+						console.log(err);
+						callback(false);
+					} else {
+					  	console.log('User created!');
+					  	callback(true);
+					}
 				});
 			});
 		});
@@ -118,6 +170,23 @@ function main() {
 			} else {
 				console.log(email + " registration failed");
 				res.send({"email": email, success: false});
+			}
+			next();
+		});
+	});
+
+	server.post('/login', function (req, res, next) {
+		params = req.params;
+		email = params.email;
+		password = params.password;
+
+		loginUser(email, password, function(err, token) {
+			if (err) {
+				console.log(email + " Login Failed");
+				res.send({"email": email, success: false});
+			} else {
+				console.log(email + " login successful");
+				res.send({"email": email, success: false, token: token});
 			}
 			next();
 		});
