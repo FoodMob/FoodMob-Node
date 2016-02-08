@@ -16,7 +16,7 @@ client.post('/echo/test', { hello: 'world', asdf: {test: 'test'} }, function(err
 ;
 */
 
-user_register_info = { email: 'test1@gmail.com', password: "school", first_name: "Albert", last_name: "Shaw"};
+user_register_info = { email: 'test2@gmail.com', password: "school", first_name: "Albert", last_name: "Shaw"};
 
 client.post('/user', user_register_info, function(err, req, res, obj) {
   console.log(req);

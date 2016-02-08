@@ -1,3 +1,5 @@
+const Crypto = require('crypto');
+
 var mongoose = require('mongoose');
 
 // Connection URL. This is where your mongodb server is running.
@@ -10,7 +12,8 @@ var Schema = mongoose.Schema;
 // create a schema
 var userSchema = new Schema({
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  hashed_password: { type: Buffer, required: true },
+  salt: {type: Buffer, required: true},
   first_name: { type: String, required: true},
   last_name: { type: String, required: true}
 });
@@ -32,25 +35,45 @@ mongoose.connect(url, function(err) {
 
 function main() {
 
+
+	function generateSalt(callback) {
+	    Crypto.randomBytes(256, function(err, buf) {
+	        if (err) throw err;
+	        callback(buf);
+	    });
+	}
+
+
+
 	//register User
 	function registerUser(email, password, first_name, last_name, callback) {
 		console.log("Registering user: %s, password: %s, first_name: %s, last_name: %s", 
 			email, password, first_name, last_name);
 
-		
-		var newUser = User({email: email, password: password, first_name: first_name, last_name: last_name});
+		generateSalt(function (salt) {
 
-		console.log(newUser.email);
+			  	console.log("salt " + salt);
 
-		newUser.save(function(err) {
-		  if (err) { //throw err;
-			console.log(err);
-			callback(false);
-		  } else {
-		  	console.log('User created!');
-		  	callback(true);
-		  }
+				Crypto.pbkdf2(password, salt, 100000, 512, 'sha512', (err, hash) => {
+			  	if (err) throw err;
+
+			  	var newUser = User({email: email, hashed_password: hash, salt: salt, first_name: first_name, last_name: last_name});
+
+				console.log("email: %s, hashed: %s, salt: %s", newUser.email, hash, salt);
+
+				newUser.save(function(err) {
+				  if (err) { //throw err;
+					console.log(err);
+					callback(false);
+				  } else {
+				  	console.log('User created!');
+				  	callback(true);
+				  }
+				});
+			});
 		});
+		
+		
 	}
 
 	var restify = require('restify');
