@@ -86,7 +86,7 @@ function main() {
                   callback(true);
                 } else {
                     console.log("login successfully");
-                    callback(false, string);
+                    callback(false, string, user);
                 }
               });
             });
@@ -193,13 +193,13 @@ function main() {
     const email = params.email;
     const password = params.password;
 
-    loginUser(email, password, function(err, token) {
+    loginUser(email, password, function(err, token, user) {
       if (err) {
         console.log(email + " Login Failed");
         res.send({"email": email, success: false});
       } else {
         console.log(email + " login successful");
-        res.send({"email": email, success: true, token: token});
+        res.send({"email": email, success: true, token: token, profile: user.profile});
       }
       next();
     });

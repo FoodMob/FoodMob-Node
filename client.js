@@ -43,5 +43,5 @@ function testLogin() {
       client.close();
   });
 }
-//testLogin();
-testRegister();
+testLogin();
+//testRegister();
