@@ -1,3 +1,5 @@
+"use strict";
+
 var restify = require('restify');
 var client = restify.createJsonClient({
   url: 'http://127.0.0.1:8080',
@@ -15,12 +17,12 @@ client.post('/echo/test', { hello: 'world', asdf: {test: 'test'} }, function(err
 })
 ;
 */
-var email = 'ashaw596@gmail.com';
+var email = 'test3@gmail.com';
 var password = 'school';
-var user_login_info = { email: email, password: password};
-var user_register_info = { email: email, password: password, first_name: "Albert", last_name: "Shaw"};
+var userLoginInformation = { email: email, password: password};
+var userRegistrationInformation = { email: email, password: password, first_name: "Albert", last_name: "Shaw"};
 function testRegister() {
-  client.post('/user', user_register_info, function(err, req, res, obj) {
+  client.post('/user', userRegistrationInformation, function(err, req, res, obj) {
     console.log(req);
     //assert.ifError(err);
     console.log('%d -> %j', res.statusCode, res.headers);
@@ -31,7 +33,7 @@ function testRegister() {
   });
 }
 function testLogin() {
-  client.post('/login', user_login_info, function(err, req, res, obj) {
+  client.post('/login', userLoginInformation, function(err, req, res, obj) {
       console.log(req);
       //assert.ifError(err);
       console.log('%d -> %j', res.statusCode, res.headers);
