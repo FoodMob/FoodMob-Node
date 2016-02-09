@@ -17,7 +17,7 @@ client.post('/echo/test', { hello: 'world', asdf: {test: 'test'} }, function(err
 })
 ;
 */
-var email = 'test3@gmail.com';
+var email = 'test4@gmail.com';
 var password = 'school';
 var userLoginInformation = { email: email, password: password};
 var userRegistrationInformation = { email: email, password: password, first_name: "Albert", last_name: "Shaw"};
@@ -43,5 +43,5 @@ function testLogin() {
       client.close();
   });
 }
-testLogin();
-//testRegister();
+//testLogin();
+testRegister();

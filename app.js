@@ -166,14 +166,24 @@ function main() {
     const password = params.password;
 
     registerUser(email, password, first_name, last_name, function(worked) {
-      if (worked) {
-        console.log(email + " register successfully");
-        res.send({"email": email, success: true});
-      } else {
+      if (!worked) {
         console.log(email + " registration failed");
         res.send({"email": email, success: false});
+        next();
+      } else {
+        console.log(email + " register successfully");
+        loginUser(email, password, function(err, token) {
+          if (err) {
+            console.log(email + " Login Failed");
+            res.send({"email": email, success: false});
+            throw "wth";
+          } else {
+            console.log(email + " login successful");
+            res.send({"email": email, success: true, token: token});
+            next();
+          }
+        });
       }
-      next();
     });
   });
 
@@ -189,7 +199,7 @@ function main() {
         res.send({"email": email, success: false});
       } else {
         console.log(email + " login successful");
-        res.send({"email": email, success: false, token: token});
+        res.send({"email": email, success: true, token: token});
       }
       next();
     });
