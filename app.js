@@ -74,7 +74,14 @@ function main() {
 
   function updateAuthedUser(email, authToken, update) {
     var query = User.findOneAndUpdate(authUserCriteria(email, authToken), update, {new: true});
-    return query.exec();
+    return query.exec()
+    .then(function(user) {
+      if (user) {
+        return user;
+      } else {
+        return Promise.reject("Authentication Failed");
+      }
+    });
   }
 
   function loginUser(email, password) {
@@ -98,6 +105,10 @@ function main() {
     }).then(function (user) {
       return [locals.authToken, user];
     });
+  }
+
+  function logoutUser(email, authToken) {
+    return updateAuthedUser(email, authToken, {"$pull":{"login.auth_tokens": {"token": authToken}}});
   }
 
   function updateUserFoodProfile(email, authToken, foodProfile) {
@@ -169,13 +180,13 @@ function main() {
     }).spread(function (authToken, user){
       console.log("Registration successful");
       res.send({"email": email, "token": authToken, success: true});
-      next();
+      return next();
     }).catch(function (err) {
       console.log("Registration Failed");
       console.log(err);
       console.log(err.stack);
       res.send({"email": email, success: false});
-      next();
+      return next();
     });
   });
 
@@ -195,6 +206,25 @@ function main() {
       console.log("Failed!", error);
       res.send({"email": email, success: false});
       next();
+    });
+  });
+
+  server.post('/logout', function(req, res, next) {
+    const params = req.params;
+    console.log(req.params);
+    const email = params.email;
+    const authToken = params.auth_token;
+    console.log("logout Request");
+    logoutUser(email, authToken)
+    .then(function(user) {
+      console.log("Logout Successful");
+      res.send({"email": email, success: true});
+      return next();
+    }).catch(function(err) {
+      console.log("Failed!");
+      console.log(err);
+      res.send({"email": email, success: false});
+      return next();     
     });
   });
 
