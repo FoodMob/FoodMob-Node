@@ -3,7 +3,7 @@
 const Crypto = require('crypto');
 
 const mongoose = require('mongoose');
-
+mongoose.Promise = global.Promise;
 // Connection URL. This is where your mongodb server is running.
 //var url = 'mongodb://localhost:27017/my_database_name';
 const url = 'mongodb://foodmob:foodmob@ds059215.mongolab.com:59215/food_mob';
@@ -25,6 +25,11 @@ const userSchema = new Schema({
   profile: {
     first_name: { type: String, required: true},
     last_name: { type: String, required: true}
+  },
+  food_profile: {
+  	likes: [String],
+    dislikes: [String],
+    allergies: [String]
   }
 });
 
@@ -45,12 +50,15 @@ mongoose.connect(url, function(err) {
 
 function main() {
 
+	function authUserCriteria(email, authToken) {
+		return {"email": email, "login.auth_tokens.token": authToken};
+	}
 
   function generateSalt(callback) {
-      Crypto.randomBytes(256, function(err, buf) {
-          if (err) throw err;
-          callback(buf);
-      });
+	Crypto.randomBytes(256, function(err, buf) {
+	  if (err) throw err;
+	  callback(buf);
+	});
   }
 
   function generateAuthToken(callback) {
@@ -60,6 +68,11 @@ function main() {
           callback(buf.toString('base64'));
       });
   }
+
+	function updateAuthedUser(email, authToken, update) {
+		var query = User.findOneAndUpdate(authUserCriteria(email, authToken), update, {new: true});
+		return query.exec();
+	}
 
   function loginUser(email, password, callback) {
     User.findOne({ 'email': email}, function (err, user) {
@@ -96,6 +109,9 @@ function main() {
       });
   }
 
+  function updateUserFoodProfile(email, authToken, foodProfile) {
+  	return updateAuthedUser(email, authToken, {"$set":{"food_profile":foodProfile}});
+  }
 
 
   //register User
@@ -142,6 +158,8 @@ function main() {
 
   server.on('uncaughtException', function (req, res, route, err) {
     console.log('uncaught error', err);
+
+    console.log(err.stack);
     return res.send(500, 'foo');
   });
    
@@ -185,6 +203,25 @@ function main() {
         });
       }
     });
+  });
+
+  server.post('/user/food_profile', function (req, res, next) {
+    console.log(req.params);
+    const params = req.params;
+    const email = params.email;
+    const authToken = params.auth_token;
+    const foodProfile = params.food_profile;
+
+    updateUserFoodProfile(email, authToken, foodProfile)
+    .then(function(user) {
+    	console.log("User Update successful " + foodProfile);
+    	res.send({"email": email, success: true});
+    	next();
+    }).catch(function(error) {
+		  console.log("Failed!", error);
+		  res.send({"email": email, success: false});
+		  next();
+		});
   });
 
   server.post('/login', function (req, res, next) {
