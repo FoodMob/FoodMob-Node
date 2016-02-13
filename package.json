@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/FoodMob/FoodMob-Node",
   "dependencies": {
+    "bluebird": "~3.3.1",
     "restify": "~4.0.3",
     "mongoose": "~4.4.2",
     "underscore": "~1.8.3"

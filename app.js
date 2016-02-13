@@ -1,9 +1,16 @@
 "use strict";
 
+const Promise = require("bluebird");
 const Crypto = require('crypto');
-
 const mongoose = require('mongoose');
-mongoose.Promise = global.Promise;
+
+mongoose.Promise = Promise;
+
+Promise.promisifyAll(Crypto);
+
+
+
+
 // Connection URL. This is where your mongodb server is running.
 //var url = 'mongodb://localhost:27017/my_database_name';
 const url = 'mongodb://foodmob:foodmob@ds059215.mongolab.com:59215/food_mob';
@@ -27,7 +34,7 @@ const userSchema = new Schema({
     last_name: { type: String, required: true}
   },
   food_profile: {
-  	likes: [String],
+    likes: [String],
     dislikes: [String],
     allergies: [String]
   }
@@ -50,100 +57,71 @@ mongoose.connect(url, function(err) {
 
 function main() {
 
-	function authUserCriteria(email, authToken) {
-		return {"email": email, "login.auth_tokens.token": authToken};
-	}
-
-  function generateSalt(callback) {
-	Crypto.randomBytes(256, function(err, buf) {
-	  if (err) throw err;
-	  callback(buf);
-	});
+  function authUserCriteria(email, authToken) {
+    return {"email": email, "login.auth_tokens.token": authToken};
   }
 
-  function generateAuthToken(callback) {
-    Crypto.randomBytes(40, function(err, buf) {
-          if (err) throw err;
-
-          callback(buf.toString('base64'));
-      });
+  function generateSalt() {
+    return Crypto.randomBytesAsync(256);
   }
 
-	function updateAuthedUser(email, authToken, update) {
-		var query = User.findOneAndUpdate(authUserCriteria(email, authToken), update, {new: true});
-		return query.exec();
-	}
+  function generateAuthToken() {
+    return Crypto.randomBytesAsync(40)
+    .then((buf) => {
+      return buf.toString('base64');
+    });
+  }
 
-  function loginUser(email, password, callback) {
-    User.findOne({ 'email': email}, function (err, user) {
-      if (err || !user) {
-        console.log("login Failed")
-        callback(true);
+  function updateAuthedUser(email, authToken, update) {
+    var query = User.findOneAndUpdate(authUserCriteria(email, authToken), update, {new: true});
+    return query.exec();
+  }
+
+  function loginUser(email, password) {
+    let locals = {};
+    return User.findOne({ 'email': email}).exec()
+    .then(function (user) {
+      locals.user = user;
+      console.log("User Found");
+      return Crypto.pbkdf2Async(password, user.login.salt, 100000, 512, 'sha512');
+    }).then(function (hash) {
+      if (!locals.user.login.hashed_password.equals(hash)) {
+        console.log("Password didn't match");
+        return Promise.reject("Password didn't match");
       } else {
-        console.log("User Found");
-        Crypto.pbkdf2(password, user.login.salt, 100000, 512, 'sha512', function (err, hash) {
-          if (err) {
-            console.log("login Failed")
-            callback(true);
-          } else if (!user.login.hashed_password.equals(hash)) {
-            console.log("Password didn't match")
-            //console.log(user.login.hashed_password.toString("utf8"));
-            //console.log(hash.toString("utf8"));
-            callback(true);
-          } else {
-            generateAuthToken((string) => {
-              user.login.auth_tokens.push({token: string, expire_time: new Date().setFullYear(new Date().getFullYear() + 2)})
-              user.save((err) => {
-                if (err) {
-                  console.log(err);
-                  callback(true);
-                } else {
-                    console.log("login successfully");
-                    callback(false, string, user);
-                }
-              });
-            });
-          }
-        });
+        return generateAuthToken();
       }
-      });
+    }).then(function(authToken) {
+      locals.user.login.auth_tokens.push({token: authToken, expire_time: new Date().setFullYear(new Date().getFullYear() + 2)});
+      locals.authToken = authToken;
+      return locals.user.save();
+    }).then(function (user) {
+      return [locals.authToken, user];
+    });
   }
 
   function updateUserFoodProfile(email, authToken, foodProfile) {
-  	return updateAuthedUser(email, authToken, {"$set":{"food_profile":foodProfile}});
+    return updateAuthedUser(email, authToken, {"$set":{"food_profile":foodProfile}});
   }
 
 
   //register User
-  function registerUser(email, password, first_name, last_name, callback) {
+  function registerUser(email, password, first_name, last_name) {
     console.log("Registering user: %s, password: %s, first_name: %s, last_name: %s", 
       email, password, first_name, last_name);
-
-    generateSalt(function (salt) {
-
-        console.log("salt " + salt);
-
-      Crypto.pbkdf2(password, salt, 100000, 512, 'sha512', function (err, hash) {
-          if (err) throw err;
-
-          const newUser = User({email: email, 
-            login: {hashed_password: hash, salt: salt}, 
-            profile: {first_name: first_name, last_name: last_name}
-          });
-
-        newUser.save(function(err) {
-          if (err) { //throw err;
-            console.log(err);
-            callback(false);
-          } else {
-              console.log('User created!');
-              callback(true);
-          }
-        });
+    let locals = {};
+    return generateSalt()
+    .then(function (salt) {
+      console.log("salt " + salt);
+      locals.salt = salt;
+      return Crypto.pbkdf2Async(password, salt, 100000, 512, 'sha512');
+    }).then( function (hash) {
+      const newUser = User({email: email, 
+        login: {hashed_password: hash, salt: locals.salt}, 
+        profile: {first_name: first_name, last_name: last_name}
       });
+      return newUser.save();
     });
-    
-    
   }
 
   const restify = require('restify');
@@ -183,25 +161,21 @@ function main() {
     const last_name = params.last_name;
     const password = params.password;
 
-    registerUser(email, password, first_name, last_name, function(worked) {
-      if (!worked) {
-        console.log(email + " registration failed");
-        res.send({"email": email, success: false});
-        next();
-      } else {
-        console.log(email + " register successfully");
-        loginUser(email, password, function(err, token) {
-          if (err) {
-            console.log(email + " Login Failed");
-            res.send({"email": email, success: false});
-            throw "wth";
-          } else {
-            console.log(email + " login successful");
-            res.send({"email": email, success: true, token: token});
-            next();
-          }
-        });
-      }
+    registerUser(email, password, first_name, last_name)
+    .then( function(newUser) {
+      console.log('User created!');
+      console.log(email + " register successfully");
+      return loginUser(email, password);
+    }).spread(function (authToken, user){
+      console.log("Registration successful");
+      res.send({"email": email, "token": authToken, success: true});
+      next();
+    }).catch(function (err) {
+      console.log("Registration Failed");
+      console.log(err);
+      console.log(err.stack);
+      res.send({"email": email, success: false});
+      next();
     });
   });
 
@@ -214,14 +188,14 @@ function main() {
 
     updateUserFoodProfile(email, authToken, foodProfile)
     .then(function(user) {
-    	console.log("User Update successful " + foodProfile);
-    	res.send({"email": email, success: true});
-    	next();
+      console.log("User Update successful " + foodProfile);
+      res.send({"email": email, success: true});
+      next();
     }).catch(function(error) {
-		  console.log("Failed!", error);
-		  res.send({"email": email, success: false});
-		  next();
-		});
+      console.log("Failed!", error);
+      res.send({"email": email, success: false});
+      next();
+    });
   });
 
   server.post('/login', function (req, res, next) {
@@ -230,14 +204,15 @@ function main() {
     const email = params.email;
     const password = params.password;
 
-    loginUser(email, password, function(err, token, user) {
-      if (err) {
-        console.log(email + " Login Failed");
-        res.send({"email": email, success: false});
-      } else {
-        console.log(email + " login successful");
-        res.send({"email": email, success: true, token: token, profile: user.profile});
-      }
+    loginUser(email, password)
+    .spread(function(token, user) {
+      console.log(email + " login successful");
+      res.send({"email": email, success: true, token: token, profile: user.profile});
+      next();
+    }).catch(function(err) {
+      console.log(err);
+      console.log(email + " Login Failed");
+      res.send({"email": email, success: false});
       next();
     });
   });

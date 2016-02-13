@@ -18,7 +18,7 @@ client.post('/echo/test', { hello: 'world', asdf: {test: 'test'} }, function(err
 })
 ;
 */
-var email = 'test4@gmail.com';
+var email = 'test15@gmail.com';
 var password = 'school';
 const auth_token = 'uSCXYbrzOwuWEKVLFEZFw9oKV0cNESyFFdB0AWoQSeyF1GNFce1GRQ==';
 var userLoginInformation = { email: email, password: password};
@@ -73,7 +73,6 @@ function testFoodProfileUpdate() {
     client.close();
   });
 }
-console.log("test");
-testFoodProfileUpdate();
+//testFoodProfileUpdate();
 //testLogin();
-//testRegister();
+testRegister();
