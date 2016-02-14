@@ -20,15 +20,15 @@ client.post('/echo/test', { hello: 'world', asdf: {test: 'test'} }, function(err
 */
 var email = 'test15@gmail.com';
 var password = 'school';
-const auth_token = 'kKZZAhlzlLnyETozerqoDuwCUzEc6Oo/Kr3kdDGf1Hbs6RdUq7cGcQ==';
+const auth_token = 'onrLoYLjFEvG/FT9AcekITfCNqGwEdgW19cY/nnbzUdj6BZtamOzgg==';
 var userLoginInformation = { email: email, password: password};
 var userRegistrationInformation = { email: email, password: password, first_name: "Albert", last_name: "Shaw"};
 var userAuth = {email: email, auth_token: auth_token};
 var foodProfile = {likes: [
-      "Korean",
-      "Mexican"
+      "Korean"
     ],
     dislikes: [
+      "Mexican",
       "Southern",
       "Tex-Mex"
     ],
@@ -37,9 +37,17 @@ var foodProfile = {likes: [
     ]
 };
 
+function testGetFoodProfile() {
+  client.get('/users/' + encodeURIComponent(email) + '/food_profile?auth_token=' + encodeURIComponent(auth_token),   function(err, req, res, obj) {
+    console.log(req);
+    console.log(obj.asdf);
+    console.log(obj);
+    client.close();
+  });
+}
 
 function testRegister() {
-  client.post('/user', userRegistrationInformation, function(err, req, res, obj) {
+  client.post('/users', userRegistrationInformation, function(err, req, res, obj) {
     console.log(req);
     //assert.ifError(err);
     console.log('%d -> %j', res.statusCode, res.headers);
@@ -63,7 +71,7 @@ function testLogin() {
 
 function testFoodProfileUpdate() {
 
-  client.post('/user/food_profile', _.extend({food_profile: foodProfile}, userAuth), function(err, req, res, obj) {
+  client.put('/users/'+encodeURIComponent(email)+'/food_profile', {auth_token: auth_token, food_profile: foodProfile}, function(err, req, res, obj) {
     console.log(req);
 
     console.log('%d -> %j', res.statusCode, res.headers);
@@ -87,5 +95,6 @@ function testLogout() {
 }
 //testFoodProfileUpdate();
 //testLogin();
-testLogout();
+//testLogout();
+testGetFoodProfile();
 //testRegister();

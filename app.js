@@ -72,8 +72,19 @@ function main() {
     });
   }
 
+  function findAuthedUser(email, authToken, projection) {
+    let query = User.findOne(authUserCriteria(email, authToken), projection);
+    return query.exec().then(function(user) {
+      if (user) {
+        return user;
+      } else {
+        return Promise.reject("Authentication Failed");
+      }
+    });
+  }
+
   function updateAuthedUser(email, authToken, update) {
-    var query = User.findOneAndUpdate(authUserCriteria(email, authToken), update, {new: true});
+    let query = User.findOneAndUpdate(authUserCriteria(email, authToken), update, {new: true});
     return query.exec()
     .then(function(user) {
       if (user) {
@@ -113,6 +124,13 @@ function main() {
 
   function updateUserFoodProfile(email, authToken, foodProfile) {
     return updateAuthedUser(email, authToken, {"$set":{"food_profile":foodProfile}});
+  }
+
+  function getUserFoodProfile(email, authToken, foodProfile) {
+    return findAuthedUser(email, authToken, {food_profile: true})
+    .then(function(user) {
+      return user.food_profile;
+    });
   }
 
 
@@ -165,7 +183,7 @@ function main() {
       return next();
   });
 
-  server.post('/user', function (req, res, next) {
+  server.post('/users', function (req, res, next) {
     const params = req.params;
     const email = params.email;
     const first_name = params.first_name;
@@ -190,7 +208,7 @@ function main() {
     });
   });
 
-  server.post('/user/food_profile', function (req, res, next) {
+  server.put('/users/:email/food_profile', function (req, res, next) {
     console.log(req.params);
     const params = req.params;
     const email = params.email;
@@ -204,6 +222,25 @@ function main() {
       next();
     }).catch(function(error) {
       console.log("Failed!", error);
+      res.send({"email": email, success: false});
+      next();
+    });
+  });
+
+  server.get('/users/:email/food_profile', function (req, res, next) {
+    console.log(req.params);
+    const params = req.params;
+    const email = params.email;
+    const authToken = params.auth_token;
+
+    getUserFoodProfile(email, authToken)
+    .then(function(foodProfile) {
+      console.log("Food Profile Found " + foodProfile);
+      res.send({"email": email, success: true, food_profile: foodProfile});
+      next();
+    }).catch(function(error) {
+      console.log("Failed!", error);
+      console.log(error.stack);
       res.send({"email": email, success: false});
       next();
     });
@@ -237,7 +274,7 @@ function main() {
     loginUser(email, password)
     .spread(function(token, user) {
       console.log(email + " login successful");
-      res.send({"email": email, success: true, token: token, profile: user.profile});
+      res.send({"email": email, success: true, auth_token: token, profile: user.profile});
       next();
     }).catch(function(err) {
       console.log(err);
