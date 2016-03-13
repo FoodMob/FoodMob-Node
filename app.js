@@ -12,8 +12,8 @@ Promise.promisifyAll(Crypto);
 
 
 // Connection URL. This is where your mongodb server is running.
-//var url = 'mongodb://localhost:27017/my_database_name';
-const url = 'mongodb://foodmob:foodmob@ds059215.mongolab.com:59215/food_mob';
+var url = 'mongodb://localhost:27017/food_mob';
+//const url = 'mongodb://foodmob:foodmob@ds059215.mongolab.com:59215/food_mob';
 
 
 const Schema = mongoose.Schema;
@@ -285,7 +285,7 @@ function main() {
   });
 
 
-  server.listen(8080, function () {
+  server.listen(8081, function () {
     console.log('%s listening at %s', server.name, server.url);
   });
 };
