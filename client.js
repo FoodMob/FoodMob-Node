@@ -18,22 +18,22 @@ client.post('/echo/test', { hello: 'world', asdf: {test: 'test'} }, function(err
 })
 ;
 */
-var email = 'test15@gmail.com';
-var password = 'school';
-const auth_token = 'onrLoYLjFEvG/FT9AcekITfCNqGwEdgW19cY/nnbzUdj6BZtamOzgg==';
+//var email = 'test15@gmail.com';
+let email = 'jonathan@foodmob.me';
+var password = 'Apple123';
+const auth_token = 'm94NboQfSRsESSnDHsiG1brJbOTBHJTba044GxhPLl53fANzKpN2Uw==';
 var userLoginInformation = { email: email, password: password};
 var userRegistrationInformation = { email: email, password: password, first_name: "Albert", last_name: "Shaw"};
 var userAuth = {email: email, auth_token: auth_token};
 var foodProfile = {likes: [
-      "Korean"
+      "korean"
     ],
     dislikes: [
-      "Mexican",
-      "Southern",
-      "Tex-Mex"
+      "mexican",
+      "southern"
     ],
     allergies: [
-      "Seafood"
+      "seafood"
     ]
 };
 
@@ -93,8 +93,31 @@ function testLogout() {
     client.close();
   });
 }
+
+function testSearch() {
+  var userLoginInformation = { email: email, password: password};
+  let location = "Atlanta"
+  let goodCategories = ['korean', 'bbq']
+  let badCategories = ['seafood']
+  let json = _.extend({location: location, good_categories: goodCategories, bad_categories: badCategories}, userAuth)
+  client.post('/search', json, function(err, req, res, obj) {
+    if (obj.success == true) {
+        obj.businesses.forEach(b => console.log(b.name + " " + b.score));
+    } else {
+        console.log(obj);
+        console.log("aww");
+    }
+
+    //console.log('%d -> %j', res.statusCode, res.headers);
+    //console.log('%j', obj);
+    //console.log("\n\n");
+    //console.log(obj);
+    client.close();
+  });
+}
 //testFoodProfileUpdate();
 //testLogin();
 //testLogout();
-testGetFoodProfile();
+//testGetFoodProfile();
 //testRegister();
+testSearch();

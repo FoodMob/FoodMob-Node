@@ -3,6 +3,15 @@
 const Promise = require("bluebird");
 const Crypto = require('crypto');
 const mongoose = require('mongoose');
+const Yelp = require("yelp")
+const _ = require('underscore');
+
+const yelp = new Yelp({
+  consumer_key: "ztr7KhVSTTlJrTyWIs_oGw",
+  consumer_secret: "LTUP8B_0FRX2bZJLKASyJv1AoIQ",
+  token: "SCewHkhbYrGOpvAVUyeBkZDt5w2pTb90",
+  token_secret: "uhNwNTtszPD0v7BwyU8pJne_nPg"
+});
 
 mongoose.Promise = Promise;
 
@@ -116,6 +125,13 @@ function main() {
     }).then(function (user) {
       return [locals.authToken, user];
     });
+  }
+
+  function searchYelp(terms, location) {
+    return yelp.search({
+      term: terms,
+      location: location
+    })
   }
 
   function logoutUser(email, authToken) {
@@ -245,6 +261,66 @@ function main() {
       next();
     });
   });
+
+  server.post('/search', function (req, res, next) {
+    console.log("Search");
+    console.log(req.params);
+    const params = req.params;
+    const email = params.email;
+    const authToken = params.auth_token;
+    const users = params.friends;
+    const location = params.location;
+
+
+    const goodCategories = [];
+    goodCategories.push(params.good_categories);
+    const badCategories = [];
+    badCategories.push(params.bad_categories);
+
+
+
+    getUserFoodProfile(email, authToken)
+    .then(function(foodProfile) {
+      goodCategories.push(foodProfile.likes);
+      badCategories.push(foodProfile.dislikes);
+      badCategories.push(foodProfile.allergies);
+
+      return searchYelp("restaurants", location)
+    }).then(function(data) {
+      let businesses = data.businesses;
+      let location = data.region;
+
+      businesses.forEach(function(business) {
+        let categories = business.categories.map(p => p[1])
+        let score = 0
+        const goodCatCount = goodCategories.map(array => _.intersection(array, categories).length);
+        const badCatCount = badCategories.map(array => _.intersection(array, categories).length);
+
+
+        
+        let goodCount = goodCatCount.reduce(function(a,b) {return a + b});
+        let badCount = badCatCount.reduce(function(a,b) {return a + b});
+
+        score += goodCount*5;
+        score -= badCount*5;
+
+        business.score = score
+        console.log(business.name)
+        console.log(categories)
+        console.log("score")
+        console.log(business.score)
+        //console.log("name: " +businesses.name)
+      });
+
+      businesses.sort(function(a, b) {return b.score - a.score});
+      res.send({"businesses": businesses, success: true});
+      next();
+    }).catch(function (err) {
+      console.log("Failed!", err);
+      res.send({"email": email, success: false});
+      next();
+    });
+  });  
 
   server.post('/logout', function(req, res, next) {
     const params = req.params;
