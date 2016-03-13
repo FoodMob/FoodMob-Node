@@ -127,11 +127,20 @@ function main() {
     });
   }
 
-  function searchYelp(terms, location) {
-    return yelp.search({
-      term: terms,
-      location: location
-    })
+  function searchYelp(terms, location, ll) {
+    if (!location && !ll) {
+      return Promise.reject("Either a location of a lat/long needs to be given");
+    } else if (location) {
+      return yelp.search({
+        term: terms,
+        location: location
+      })
+    } else {
+      return yelp.search({
+        term: terms,
+        ll: ll
+      })
+    }
   }
 
   function logoutUser(email, authToken) {
@@ -270,7 +279,10 @@ function main() {
     const authToken = params.auth_token;
     const users = params.friends;
     const location = params.location;
-
+    let ll = params.ll;
+    if (ll) {
+      ll = ll.join()
+    }
 
     const goodCategories = [];
     goodCategories.push(params.good_categories);
@@ -285,7 +297,7 @@ function main() {
       badCategories.push(foodProfile.dislikes);
       badCategories.push(foodProfile.allergies);
 
-      return searchYelp("restaurants", location)
+      return searchYelp("restaurants", location, ll)
     }).then(function(data) {
       let businesses = data.businesses;
       let location = data.region;

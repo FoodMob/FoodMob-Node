@@ -99,7 +99,7 @@ function testSearch() {
   let location = "Atlanta"
   let goodCategories = ['korean', 'bbq']
   let badCategories = ['seafood']
-  let json = _.extend({location: location, good_categories: goodCategories, bad_categories: badCategories}, userAuth)
+  let json = _.extend({ll: [33.7550, -84.3900], good_categories: goodCategories, bad_categories: badCategories}, userAuth)
   client.post('/search', json, function(err, req, res, obj) {
     if (obj.success == true) {
         obj.businesses.forEach(b => console.log(b.name + " " + b.score));
