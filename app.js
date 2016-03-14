@@ -127,13 +127,14 @@ function main() {
     });
   }
 
-  function searchYelp(terms, location, ll) {
+  function searchYelp(terms, location, cll, ll) {
     if (!location && !ll) {
       return Promise.reject("Either a location of a lat/long needs to be given");
     } else if (location) {
       return yelp.search({
         term: terms,
-        location: location
+        location: location,
+        cll: cll
       })
     } else {
       return yelp.search({
@@ -284,6 +285,12 @@ function main() {
       ll = ll.join()
     }
 
+
+    let cll = params.c11;
+    if (cll) {
+      cll = cll.join();
+    }
+
     const goodCategories = [];
     goodCategories.push(params.good_categories);
     const badCategories = [];
@@ -297,7 +304,7 @@ function main() {
       badCategories.push(foodProfile.dislikes);
       badCategories.push(foodProfile.allergies);
 
-      return searchYelp("restaurants", location, ll)
+      return searchYelp("restaurants", location, cll, ll)
     }).then(function(data) {
       let businesses = data.businesses;
       let location = data.region;
