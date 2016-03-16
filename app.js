@@ -131,11 +131,18 @@ function main() {
     if (!location && !ll) {
       return Promise.reject("Either a location of a lat/long needs to be given");
     } else if (location) {
-      return yelp.search({
-        term: terms,
-        location: location,
-        cll: cll
-      })
+      if (cll) {
+        return yelp.search({
+          term: terms,
+          location: location,
+          cll: cll
+        });
+      } else {
+        return yelp.search({
+          term: terms,
+          location: location
+        });
+      }
     } else {
       return yelp.search({
         term: terms,
