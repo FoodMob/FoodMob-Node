@@ -115,9 +115,31 @@ function testSearch() {
     client.close();
   });
 }
+
+function testAddFriend(friend_email) {
+    client.put('/users/'+encodeURIComponent(email)+'/friends', {auth_token: auth_token, friend_email: friend_email}, function(err, req, res, obj) {
+        console.log(req);
+        console.log('%d -> %j', res.statusCode, res.headers);
+        console.log('%j', obj);
+        console.log("\n\n");
+        console.log(obj);
+        client.close();
+    });
+}
+
+function testGetFriends(email, auth_token) {
+    client.get('/users/' + encodeURIComponent(email) + '/friends?auth_token=' + encodeURIComponent(auth_token),   function(err, req, res, obj) {
+        console.log(req);
+        console.log(obj);
+        client.close();
+    });
+}
+
 //testFoodProfileUpdate();
 //testLogin();
 //testLogout();
 //testGetFoodProfile();
 //testRegister();
-testSearch();
+//testSearch();
+//testAddFriend("ashaw596@gmail.com");
+testGetFriends(email ,auth_token);
