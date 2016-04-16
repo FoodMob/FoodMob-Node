@@ -46,7 +46,12 @@ const userSchema = new Schema({
     likes: [String],
     dislikes: [String],
     allergies: [String]
-  }
+  },
+  friends: [{
+    first_name: { type: String, required: true},
+    last_name: { type: String, required: true},
+    email: { type: String, required: true, unique: true }
+  }]
 });
 
 // the schema is useless so far
@@ -81,7 +86,12 @@ function main() {
     });
   }
 
+  function findUser(email) {
+    return User.findOne({"email": email});
+  }
+
   function findAuthedUser(email, authToken, projection) {
+    //console.log(email, authToken);
     let query = User.findOne(authUserCriteria(email, authToken), projection);
     return query.exec().then(function(user) {
       if (user) {
@@ -127,15 +137,65 @@ function main() {
     });
   }
 
-  function searchYelp(terms, location) {
-    return yelp.search({
-      term: terms,
-      location: location
-    })
+  function searchYelp(terms, location, cll, ll) {
+    if (!location && !ll) {
+      return Promise.reject("Either a location of a lat/long needs to be given");
+    } else if (location) {
+      if (cll) {
+        return yelp.search({
+          term: terms,
+          location: location,
+          cll: cll
+        });
+      } else {
+        return yelp.search({
+          term: terms,
+          location: location
+        });
+      }
+    } else {
+      return yelp.search({
+        term: terms,
+        ll: ll
+      })
+    }
   }
 
   function logoutUser(email, authToken) {
     return updateAuthedUser(email, authToken, {"$pull":{"login.auth_tokens": {"token": authToken}}});
+  }
+
+  function getFriends(email, authToken) {
+    return findAuthedUser(email, authToken)
+    .then(function(user) {
+      return user.friends;
+    })
+  }
+
+  function addFriend(userEmail, authToken, friendEmail) {
+    let locals = {};
+    return findAuthedUser(userEmail, authToken)
+        .then(function (user) {
+          let friends = user.friends;
+          if (friends.some(friend => friend.email == friendEmail)) {
+            return Promise.reject("Friend already added");
+          } else {
+            locals.user = user;
+            return getUserProfile(friendEmail);
+          }
+        }).then(function (profile) {
+          console.log(profile);
+          let first_name = profile.first_name;
+          let last_name = profile.last_name;
+          let email = friendEmail;
+          locals.user.friends.push({first_name: first_name, last_name: last_name, email: email});
+          return locals.user.save();
+        })
+  }
+
+  function getUserProfile(email) {
+    return findUser(email)
+        .then(user => user.profile);
   }
 
   function updateUserFoodProfile(email, authToken, foodProfile) {
@@ -224,6 +284,50 @@ function main() {
     });
   });
 
+  server.get('/users/:userEmail/friends', function (req, res, next) {
+    //console.log(req.params);
+    const params = req.params;
+    const userEmail = params.userEmail;
+    const authToken = params.auth_token;
+
+    getFriends(userEmail, authToken)
+        .then(function(friends) {
+          //let friends = user.friends;
+          console.log("friends " + friends);
+          res.send({"friends": friends, success: true});
+          next();
+        }).catch(function(error) {
+          console.log("Failed!", error);
+          res.send({success: false});
+          next();
+        });
+  });
+
+  server.put('/users/:userEmail/friends', function (req, res, next) {
+    //console.log(req.params);
+    const params = req.params;
+    const userEmail = params.userEmail;
+    const friendEmail = params.friend_email;
+    const authToken = params.auth_token;
+
+    addFriend(userEmail, authToken, friendEmail)
+    .then(function(user) {
+      console.log("Friend Added Successfully " + user);
+      res.send({"email": friendEmail, success: true});
+      next();
+    }).catch(function(error) {
+      if (error == "Friend already added") {
+        console.log("Duplicated Friend tried to be added " + friendEmail);
+        res.send({"email": friendEmail, success: false, error: "duplicate"});
+        next();
+      } else {
+        console.log("Failed!", error);
+        res.send({"email": friendEmail, success: false});
+        next();
+      }
+    });
+  });
+
   server.put('/users/:email/food_profile', function (req, res, next) {
     console.log(req.params);
     const params = req.params;
@@ -270,12 +374,23 @@ function main() {
     const authToken = params.auth_token;
     const users = params.friends;
     const location = params.location;
+    let ll = params.ll;
+    if (ll) {
+      ll = ll.join()
+    }
 
+
+    let cll = params.c11;
+    if (cll) {
+      cll = cll.join();
+    }
 
     const goodCategories = [];
     goodCategories.push(params.good_categories);
     const badCategories = [];
     badCategories.push(params.bad_categories);
+    const allergyCategories = [];
+    allergyCategories.push(params.allergy_categories);
 
 
 
@@ -283,9 +398,9 @@ function main() {
     .then(function(foodProfile) {
       goodCategories.push(foodProfile.likes);
       badCategories.push(foodProfile.dislikes);
-      badCategories.push(foodProfile.allergies);
+      allergyCategories.push(foodProfile.allergies);
 
-      return searchYelp("restaurants", location)
+      return searchYelp("restaurants", location, cll, ll)
     }).then(function(data) {
       let businesses = data.businesses;
       let location = data.region;
@@ -295,14 +410,17 @@ function main() {
         let score = 0
         const goodCatCount = goodCategories.map(array => _.intersection(array, categories).length);
         const badCatCount = badCategories.map(array => _.intersection(array, categories).length);
+        const allergyCatCount = allergyCategories.map(array => _.intersection(array, categories).length);
 
 
         
         let goodCount = goodCatCount.reduce(function(a,b) {return a + b});
         let badCount = badCatCount.reduce(function(a,b) {return a + b});
+        let allergyCount = allergyCatCount.reduce(function(a,b){return a + b});
 
         score += goodCount*5;
         score -= badCount*5;
+        score -= allergyCount*25;
 
         business.score = score
         console.log(business.name)
