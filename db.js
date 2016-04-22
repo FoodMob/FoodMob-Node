@@ -7,7 +7,8 @@ mongoose.Promise = Promise;
 
 // Connection URL. This is where your mongodb server is running.
 const dbURI = 'mongodb://foodmob:foodmob@ds059215.mongolab.com:59215/food_mob';
-//const url = 'mongodb://localhost:27017/my_database_name';
+//var dbURI = 'mongodb://localhost:27017/food_mob';
+
 mongoose.connect(dbURI);
 
 // CONNECTION EVENTS
