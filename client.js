@@ -99,7 +99,7 @@ function testSearch() {
   let location = "Atlanta"
   let goodCategories = ['korean', 'bbq']
   let badCategories = ['seafood']
-  let json = _.extend({ll: [33.7550, -84.3900], good_categories: goodCategories, bad_categories: badCategories}, userAuth)
+  let json = _.extend({ll: [33.7550, -84.3900], good_categories: goodCategories, bad_categories: badCategories, min_rating: 3.5, options: {radius_filter: 100}}, userAuth)
   client.post('/search', json, function(err, req, res, obj) {
     if (obj.success == true) {
         obj.businesses.forEach(b => console.log(b.name + " " + b.score));
@@ -140,6 +140,7 @@ function testGetFriends(email, auth_token) {
 //testLogout();
 //testGetFoodProfile();
 //testRegister();
-//testSearch();
+testSearch();
+//testAddFriend('jonathan1@foodmob.me');
 //testAddFriend("ashaw596@gmail.com");
-testGetFriends(email ,auth_token);
+//testGetFriends(email ,auth_token);
