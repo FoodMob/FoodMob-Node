@@ -1,4 +1,8 @@
 "use strict";
+/**
+ * Api for adding and getting Friends of User
+ */
+
 const Promise = require("bluebird");
 const Auth = require("./auth.js");
 const UserUtils = require("./user_utils");

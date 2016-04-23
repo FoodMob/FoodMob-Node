@@ -1,15 +1,16 @@
 "use strict";
+/**
+ * Database API for UserSchema
+ */
 
 const Promise = require("bluebird");
 const mongoose = require('mongoose');
-
+//Set Mongoose to return bluebird promises
 mongoose.Promise = Promise;
 
 // Connection URL. This is where your mongodb server is running.
 const dbURI = 'mongodb://foodmob:foodmob@ds059215.mongolab.com:59215/food_mob';
 //var dbURI = 'mongodb://localhost:27017/food_mob';
-
-mongoose.connect(dbURI);
 
 // CONNECTION EVENTS
 // When successfully connected
@@ -34,6 +35,9 @@ process.on('SIGINT', function() {
         process.exit(0);
     });
 });
+
+//Connects to MongoDb databse
+mongoose.connect(dbURI);
 
 // create and export Schema
 const userSchema = new mongoose.Schema({

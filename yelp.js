@@ -1,4 +1,7 @@
 "use strict";
+/**
+ * Thin Yelp API for yelp Search
+ */
 
 const _ = require('underscore');
 const Promise = require("bluebird");

@@ -1,18 +1,22 @@
 "use strict";
-
-const Promise = require("bluebird");
-const Crypto = require('crypto');
-Promise.promisifyAll(Crypto);
-
+/**
+ * Authentication functions for database Users
+ */
 
 const User = require("./db.js");
-
 const Utils = require("./user_utils.js")
+const Promise = require("bluebird");
+const Crypto = require('crypto');
 
+//Convert Crypto functions to user Promises
+Promise.promisifyAll(Crypto);
+
+//Promise function to return random salt
 function generateSalt() {
     return Crypto.randomBytesAsync(256);
 }
 
+//Promise function to return a random auth token
 function generateAuthToken() {
     return Crypto.randomBytesAsync(40)
         .then((buf) => {
@@ -20,10 +24,12 @@ function generateAuthToken() {
         });
 }
 
+//Returns Map with criteria to check an user with authToken
 function authUserCriteria(email, authToken) {
     return {"email": email, "login.auth_tokens.token": authToken};
-};
+}
 
+//Tries to login user with email and password
 exports.loginUser = function(email, password) {
     let locals = {};
     return User.findOne({ 'email': email}).exec()
@@ -47,7 +53,7 @@ exports.loginUser = function(email, password) {
         });
 };
 
-//register User
+//Register User
 exports.registerUser = function registerUser(email, password, first_name, last_name) {
     console.log("Registering user: %s, password: %s, first_name: %s, last_name: %s",
         email, password, first_name, last_name);
@@ -66,12 +72,13 @@ exports.registerUser = function registerUser(email, password, first_name, last_n
         });
 };
 
+//Logout User AuthToken
 exports.logoutUser = function(email, authToken) {
     return Utils.updateAuthedUser(email, authToken, {"$pull":{"login.auth_tokens": {"token": authToken}}});
 };
 
+//Find Authorized user with Email and AuthToken
 exports.findAuthedUser = function(email, authToken, projection) {
-    //console.log(email, authToken);
     let query = User.findOne(authUserCriteria(email, authToken), projection);
     return query.exec().then(function(user) {
         if (user) {
@@ -82,6 +89,7 @@ exports.findAuthedUser = function(email, authToken, projection) {
     });
 };
 
+//Update fields of user with Email and AuthToken
 module.exports.updateAuthedUser = function(email, authToken, update) {
     let query = User.findOneAndUpdate(authUserCriteria(email, authToken), update, {new: true});
     return query.exec()
