@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>server.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page_wrapper">
+            <div id="jump_page">
+              
+                
+                <a class="source" href="app.html">
+                  app.js
+                </a>
+              
+                
+                <a class="source" href="server.html">
+                  server.js
+                </a>
+              
+            </div>
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>server.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-meta">"use strict"</span>;
+<span class="hljs-comment">/**
+ * Main Server File. Sets up API endpoints
+ **/</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Imports</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">const</span> _ = <span class="hljs-built_in">require</span>(<span class="hljs-string">'underscore'</span>);
+<span class="hljs-keyword">const</span> UserUtils = <span class="hljs-built_in">require</span>(<span class="hljs-string">"./user_utils.js"</span>);
+<span class="hljs-keyword">const</span> Friends = <span class="hljs-built_in">require</span>(<span class="hljs-string">"./friends.js"</span>);
+<span class="hljs-keyword">const</span> Auth = <span class="hljs-built_in">require</span>(<span class="hljs-string">"./auth.js"</span>);
+<span class="hljs-keyword">const</span> User = <span class="hljs-built_in">require</span>(<span class="hljs-string">"./db.js"</span>);
+<span class="hljs-keyword">const</span> Yelp = <span class="hljs-built_in">require</span>(<span class="hljs-string">"./yelp.js"</span>);
+<span class="hljs-keyword">const</span> Restfiy = <span class="hljs-built_in">require</span>(<span class="hljs-string">'restify'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Create the Restify Server</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">const</span> server = Restfiy.createServer({
+        name: <span class="hljs-string">'FoodMob-Node'</span>,
+        version: <span class="hljs-string">'1.0.0'</span>
+    });
+server.use(Restfiy.acceptParser(server.acceptable));
+server.use(Restfiy.queryParser());
+server.use(Restfiy.bodyParser());</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Output Exceptions thrown in Restify</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>server.on(<span class="hljs-string">'uncaughtException'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">req, res, route, err</span>) </span>{
+    <span class="hljs-built_in">console</span>.error(<span class="hljs-string">'uncaught error'</span>, err);
+    <span class="hljs-built_in">console</span>.error(err.stack);
+    <span class="hljs-keyword">return</span> res.send(<span class="hljs-number">500</span>, <span class="hljs-string">'Unknown Error\n'</span> + err.stack);
+});
+
+
+<span class="hljs-comment">/**
+ * Setup API EndPoints
+ *
+ * Full API Definition at https://docs.google.com/document/d/1c_W9Swb8wVKoVLiBv0ZFhFMh5jhU5u0iR2UylNOX-5M/edit?usp=sharing
+ **/</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>Login</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>server.post(<span class="hljs-string">'/login'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">req, res, next</span>) </span>{
+    <span class="hljs-built_in">console</span>.log(req.params);
+    <span class="hljs-keyword">const</span> params = req.params;
+    <span class="hljs-keyword">const</span> email = params.email;
+    <span class="hljs-keyword">const</span> password = params.password;
+
+    Auth.loginUser(email, password)
+        .spread(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">token, user</span>) </span>{
+            <span class="hljs-built_in">console</span>.log(email + <span class="hljs-string">" login successful"</span>);
+            res.send({<span class="hljs-string">"email"</span>: email, success: <span class="hljs-literal">true</span>, auth_token: token, profile: user.profile});
+            next();
+        }).catch(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err</span>) </span>{
+        <span class="hljs-built_in">console</span>.log(err);
+        <span class="hljs-built_in">console</span>.log(email + <span class="hljs-string">" Login Failed"</span>);
+        res.send({<span class="hljs-string">"email"</span>: email, success: <span class="hljs-literal">false</span>});
+        next();
+    });
+});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Register</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>server.post(<span class="hljs-string">'/users'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">req, res, next</span>) </span>{
+    <span class="hljs-keyword">const</span> params = req.params;
+    <span class="hljs-keyword">const</span> email = params.email;
+    <span class="hljs-keyword">const</span> first_name = params.first_name;
+    <span class="hljs-keyword">const</span> last_name = params.last_name;
+    <span class="hljs-keyword">const</span> password = params.password;
+
+    Auth.registerUser(email, password, first_name, last_name)
+        .then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">newUser</span>) </span>{
+            <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'User created!'</span>);
+            <span class="hljs-built_in">console</span>.log(email + <span class="hljs-string">" register successfully"</span>);
+            <span class="hljs-keyword">return</span> Auth.loginUser(email, password);
+        }).spread(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">authToken, user</span>) </span>{
+        <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Registration successful"</span>);
+        res.send({<span class="hljs-string">"email"</span>: email, <span class="hljs-string">"token"</span>: authToken, success: <span class="hljs-literal">true</span>});
+        <span class="hljs-keyword">return</span> next();
+    }).catch(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err</span>) </span>{
+        <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Registration Failed"</span>);
+        <span class="hljs-built_in">console</span>.log(err);
+        <span class="hljs-built_in">console</span>.log(err.stack);
+        res.send({<span class="hljs-string">"email"</span>: email, success: <span class="hljs-literal">false</span>});
+        <span class="hljs-keyword">return</span> next();
+    });
+});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Logout</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>server.post(<span class="hljs-string">'/logout'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">req, res, next</span>) </span>{
+    <span class="hljs-keyword">const</span> params = req.params;
+    <span class="hljs-built_in">console</span>.log(req.params);
+    <span class="hljs-keyword">const</span> email = params.email;
+    <span class="hljs-keyword">const</span> authToken = params.auth_token;
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"logout Request"</span>);
+    Auth.logoutUser(email, authToken)
+        .then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">user</span>) </span>{
+            <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Logout Successful"</span>);
+            res.send({<span class="hljs-string">"email"</span>: email, success: <span class="hljs-literal">true</span>});
+            <span class="hljs-keyword">return</span> next();
+        }).catch(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err</span>) </span>{
+        <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Failed!"</span>);
+        <span class="hljs-built_in">console</span>.log(err);
+        res.send({<span class="hljs-string">"email"</span>: email, success: <span class="hljs-literal">false</span>});
+        <span class="hljs-keyword">return</span> next();
+    });
+});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>Get Friends</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>server.get(<span class="hljs-string">'/users/:userEmail/friends'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">req, res, next</span>) </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>console.log(req.params);</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">const</span> params = req.params;
+    <span class="hljs-keyword">const</span> userEmail = params.userEmail;
+    <span class="hljs-keyword">const</span> authToken = params.auth_token;
+
+    Friends.getFriends(userEmail, authToken)
+        .then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">friends</span>) </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>let friends = user.friends;</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"friends "</span> + friends);
+            res.send({<span class="hljs-string">"friends"</span>: friends, success: <span class="hljs-literal">true</span>});
+            next();
+        }).catch(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error</span>) </span>{
+        <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Failed!"</span>, error);
+        res.send({success: <span class="hljs-literal">false</span>});
+        next();
+    });
+});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>Add Friends</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>server.put(<span class="hljs-string">'/users/:userEmail/friends'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">req, res, next</span>) </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>console.log(req.params);</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">const</span> params = req.params;
+    <span class="hljs-keyword">const</span> userEmail = params.userEmail;
+    <span class="hljs-keyword">const</span> friendEmail = params.friend_email;
+    <span class="hljs-keyword">const</span> authToken = params.auth_token;
+
+    Friends.addFriend(userEmail, authToken, friendEmail)
+        .then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">user</span>) </span>{
+            <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Friend Added Successfully "</span> + user);
+            res.send({<span class="hljs-string">"email"</span>: friendEmail, success: <span class="hljs-literal">true</span>});
+            next();
+        }).catch(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error</span>) </span>{
+        <span class="hljs-keyword">if</span> (error == <span class="hljs-string">"Friend already added"</span>) {
+            <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Duplicated Friend tried to be added "</span> + friendEmail);
+            res.send({<span class="hljs-string">"email"</span>: friendEmail, success: <span class="hljs-literal">false</span>, error: <span class="hljs-string">"duplicate"</span>});
+            next();
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Failed!"</span>, error);
+            res.send({<span class="hljs-string">"email"</span>: friendEmail, success: <span class="hljs-literal">false</span>});
+            next();
+        }
+    });
+});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>Get Food Profile</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>server.get(<span class="hljs-string">'/users/:email/food_profile'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">req, res, next</span>) </span>{
+    <span class="hljs-built_in">console</span>.log(req.params);
+    <span class="hljs-keyword">const</span> params = req.params;
+    <span class="hljs-keyword">const</span> email = params.email;
+    <span class="hljs-keyword">const</span> authToken = params.auth_token;
+
+    UserUtils.getUserFoodProfile(email, authToken)
+        .then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">foodProfile</span>) </span>{
+            <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Food Profile Found "</span> + foodProfile);
+            res.send({<span class="hljs-string">"email"</span>: email, success: <span class="hljs-literal">true</span>, food_profile: foodProfile});
+            next();
+        }).catch(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error</span>) </span>{
+        <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Failed!"</span>, error);
+        <span class="hljs-built_in">console</span>.log(error.stack);
+        res.send({<span class="hljs-string">"email"</span>: email, success: <span class="hljs-literal">false</span>});
+        next();
+    });
+});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>Update Food Profile</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>server.put(<span class="hljs-string">'/users/:email/food_profile'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">req, res, next</span>) </span>{
+    <span class="hljs-built_in">console</span>.log(req.params);
+    <span class="hljs-keyword">const</span> params = req.params;
+    <span class="hljs-keyword">const</span> email = params.email;
+    <span class="hljs-keyword">const</span> authToken = params.auth_token;
+    <span class="hljs-keyword">const</span> foodProfile = params.food_profile;
+
+    UserUtils.updateUserFoodProfile(email, authToken, foodProfile)
+        .then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">user</span>) </span>{
+            <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"User Update successful "</span> + foodProfile);
+            res.send({<span class="hljs-string">"email"</span>: email, success: <span class="hljs-literal">true</span>});
+            next();
+        }).catch(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error</span>) </span>{
+        <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Failed!"</span>, error);
+        res.send({<span class="hljs-string">"email"</span>: email, success: <span class="hljs-literal">false</span>});
+        next();
+    });
+});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>Search for Restaurants</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>server.post(<span class="hljs-string">'/search'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">req, res, next</span>) </span>{
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Search"</span>);
+    <span class="hljs-built_in">console</span>.log(req.params);
+    <span class="hljs-keyword">const</span> params = req.params;
+    <span class="hljs-keyword">const</span> email = params.email;
+    <span class="hljs-keyword">const</span> authToken = params.auth_token;
+    <span class="hljs-keyword">const</span> users = params.friends;
+    <span class="hljs-keyword">const</span> location = params.location;
+    <span class="hljs-keyword">const</span> minRating = params.min_rating;
+
+    <span class="hljs-keyword">let</span> options;
+    <span class="hljs-keyword">if</span> (params.options) {
+        options = params.options;
+    } <span class="hljs-keyword">else</span> {
+        options = {};
+    }
+
+    <span class="hljs-keyword">let</span> ll = params.ll;
+    <span class="hljs-keyword">if</span> (ll) {
+        ll = ll.join()
+    }
+
+
+    <span class="hljs-keyword">let</span> cll = params.c11;
+    <span class="hljs-keyword">if</span> (cll) {
+        cll = cll.join();
+    }
+
+    <span class="hljs-keyword">const</span> goodCategories = [];
+    goodCategories.push(params.good_categories);
+    <span class="hljs-keyword">const</span> badCategories = [];
+    badCategories.push(params.bad_categories);
+    <span class="hljs-keyword">const</span> allergyCategories = [];
+    allergyCategories.push(params.allergy_categories);
+
+
+    UserUtils.getUserFoodProfile(email, authToken)
+        .then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">foodProfile</span>) </span>{
+            goodCategories.push(foodProfile.likes);
+            badCategories.push(foodProfile.dislikes);
+            allergyCategories.push(foodProfile.allergies);
+
+            <span class="hljs-keyword">let</span> ourOptions = {};
+
+
+            ourOptions.limit = <span class="hljs-number">20</span>;
+
+            <span class="hljs-keyword">if</span> (minRating) {
+                ourOptions.sort = <span class="hljs-number">2</span>;<span class="hljs-comment">//Best Rating</span>
+            }
+
+
+            _.extend(ourOptions, options);
+
+            <span class="hljs-keyword">return</span> Yelp.searchYelp(<span class="hljs-string">"restaurants"</span>, location, cll, ll, ourOptions)
+        }).then(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">data</span>) </span>{
+        <span class="hljs-keyword">let</span> businesses = data.businesses;
+        <span class="hljs-keyword">let</span> location = data.region;
+
+        businesses = businesses.filter(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">business</span>) </span>{
+            <span class="hljs-built_in">console</span>.log(minRating, business.rating);
+            <span class="hljs-keyword">if</span> (minRating) {
+                <span class="hljs-keyword">if</span> (!business.rating || minRating &gt; business.rating) {
+                    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+                }
+            }
+            <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+        });
+
+        businesses.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">business</span>) </span>{
+            <span class="hljs-keyword">let</span> categories = business.categories.map(p =&gt; p[<span class="hljs-number">1</span>])
+            <span class="hljs-keyword">let</span> score = <span class="hljs-number">0</span>
+            <span class="hljs-keyword">const</span> goodCatCount = goodCategories.map(array =&gt; _.intersection(array, categories).length);
+            <span class="hljs-keyword">const</span> badCatCount = badCategories.map(array =&gt; _.intersection(array, categories).length);
+            <span class="hljs-keyword">const</span> allergyCatCount = allergyCategories.map(array =&gt; _.intersection(array, categories).length);
+
+
+            <span class="hljs-keyword">let</span> goodCount = goodCatCount.reduce(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">a, b</span>) </span>{
+                <span class="hljs-keyword">return</span> a + b
+            });
+            <span class="hljs-keyword">let</span> badCount = badCatCount.reduce(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">a, b</span>) </span>{
+                <span class="hljs-keyword">return</span> a + b
+            });
+            <span class="hljs-keyword">let</span> allergyCount = allergyCatCount.reduce(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">a, b</span>) </span>{
+                <span class="hljs-keyword">return</span> a + b
+            });
+
+            score += goodCount * <span class="hljs-number">5</span>;
+            score -= badCount * <span class="hljs-number">5</span>;
+            score -= allergyCount * <span class="hljs-number">25</span>;
+
+
+            business.score = score
+            <span class="hljs-built_in">console</span>.log(business.name)
+            <span class="hljs-built_in">console</span>.log(categories)
+            <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"score"</span>)
+            <span class="hljs-built_in">console</span>.log(business.score)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>console.log(“name: “ +businesses.name)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        });
+
+        businesses.sort(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">a, b</span>) </span>{
+            <span class="hljs-keyword">return</span> b.score - a.score
+        });
+        res.send({<span class="hljs-string">"businesses"</span>: businesses, success: <span class="hljs-literal">true</span>});
+        next();
+    }).catch(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err</span>) </span>{
+        <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"Failed!"</span>, err);
+        res.send({<span class="hljs-string">"email"</span>: email, success: <span class="hljs-literal">false</span>});
+        next();
+    });
+});
+
+<span class="hljs-built_in">module</span>.exports = server;</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

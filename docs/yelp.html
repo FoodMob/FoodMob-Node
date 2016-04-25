@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>yelp.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page_wrapper">
+            <div id="jump_page">
+              
+                
+                <a class="source" href="app.html">
+                  app.js
+                </a>
+              
+                
+                <a class="source" href="yelp.html">
+                  yelp.js
+                </a>
+              
+            </div>
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>yelp.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-meta">"use strict"</span>;
+
+<span class="hljs-keyword">const</span> _ = <span class="hljs-built_in">require</span>(<span class="hljs-string">'underscore'</span>);
+<span class="hljs-keyword">const</span> <span class="hljs-built_in">Promise</span> = <span class="hljs-built_in">require</span>(<span class="hljs-string">"bluebird"</span>);
+<span class="hljs-keyword">const</span> YelpAPI = <span class="hljs-built_in">require</span>(<span class="hljs-string">"yelp"</span>);
+<span class="hljs-keyword">const</span> yelp = <span class="hljs-keyword">new</span> YelpAPI({
+    consumer_key: <span class="hljs-string">"ztr7KhVSTTlJrTyWIs_oGw"</span>,
+    consumer_secret: <span class="hljs-string">"LTUP8B_0FRX2bZJLKASyJv1AoIQ"</span>,
+    token: <span class="hljs-string">"SCewHkhbYrGOpvAVUyeBkZDt5w2pTb90"</span>,
+    token_secret: <span class="hljs-string">"uhNwNTtszPD0v7BwyU8pJne_nPg"</span>
+});
+
+<span class="hljs-built_in">module</span>.exports.searchYelp = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">terms, location, cll, ll, otherOptions</span>) </span>{
+    <span class="hljs-keyword">if</span> (!location &amp;&amp; !ll) {
+        <span class="hljs-keyword">return</span> <span class="hljs-built_in">Promise</span>.reject(<span class="hljs-string">"Either a location of a lat/long needs to be given"</span>);
+    }
+    <span class="hljs-keyword">let</span> options;
+    <span class="hljs-keyword">if</span> (location) {
+        <span class="hljs-keyword">if</span> (cll) {
+            options = {
+                term: terms,
+                location: location,
+                cll: cll
+            };
+        } <span class="hljs-keyword">else</span> {
+            options = {
+                term: terms,
+                location: location
+            };
+        }
+    } <span class="hljs-keyword">else</span> {
+        options = {
+            term: terms,
+            ll: ll
+        };
+    }
+
+    _.extend(options, otherOptions);
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">"options"</span>,options);
+    <span class="hljs-keyword">return</span> yelp.search(options);
+};</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
