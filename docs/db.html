@@ -11,6 +11,54 @@
   <div id="container">
     <div id="background"></div>
     
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page_wrapper">
+            <div id="jump_page">
+              
+                
+                <a class="source" href="app.html">
+                  app.js
+                </a>
+              
+                
+                <a class="source" href="app.html">
+                  app.js
+                </a>
+              
+                
+                <a class="source" href="db.html">
+                  db.js
+                </a>
+              
+                
+                <a class="source" href="friends.html">
+                  friends.js
+                </a>
+              
+                
+                <a class="source" href="server.html">
+                  server.js
+                </a>
+              
+                
+                <a class="source" href="user_utils.html">
+                  user_utils.js
+                </a>
+              
+                
+                <a class="source" href="yelp.html">
+                  yelp.js
+                </a>
+              
+            </div>
+          </div>
+        </li>
+      </ul>
+    
     <ul class="sections">
         
           <li id="title">
@@ -31,11 +79,12 @@
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-meta">"use strict"</span>;
+<span class="hljs-comment">/**
+ * Database API for UserSchema
+ */</span>
 
 <span class="hljs-keyword">const</span> <span class="hljs-built_in">Promise</span> = <span class="hljs-built_in">require</span>(<span class="hljs-string">"bluebird"</span>);
-<span class="hljs-keyword">const</span> mongoose = <span class="hljs-built_in">require</span>(<span class="hljs-string">'mongoose'</span>);
-
-mongoose.Promise = <span class="hljs-built_in">Promise</span>;</pre></div></div>
+<span class="hljs-keyword">const</span> mongoose = <span class="hljs-built_in">require</span>(<span class="hljs-string">'mongoose'</span>);</pre></div></div>
             
         </li>
         
@@ -46,11 +95,11 @@ mongoose.Promise = <span class="hljs-built_in">Promise</span>;</pre></div></div>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <p>Connection URL. This is where your mongodb server is running.</p>
+              <p>Set Mongoose to return bluebird promises</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">const</span> dbURI = <span class="hljs-string">'mongodb://foodmob:foodmob@ds059215.mongolab.com:59215/food_mob'</span>;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>mongoose.Promise = <span class="hljs-built_in">Promise</span>;</pre></div></div>
             
         </li>
         
@@ -61,12 +110,11 @@ mongoose.Promise = <span class="hljs-built_in">Promise</span>;</pre></div></div>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-3">&#182;</a>
               </div>
-              <p>var dbURI = ‘mongodb://localhost:27017/food_mob’;</p>
+              <p>Connection URL. This is where your mongodb server is running.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>
-mongoose.connect(dbURI);</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">const</span> dbURI = <span class="hljs-string">'mongodb://foodmob:foodmob@ds059215.mongolab.com:59215/food_mob'</span>;</pre></div></div>
             
         </li>
         
@@ -76,6 +124,19 @@ mongoose.connect(dbURI);</pre></div></div>
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>var dbURI = ‘mongodb://localhost:27017/food_mob’;</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
               </div>
               <p>CONNECTION EVENTS
 When successfully connected</p>
@@ -89,11 +150,11 @@ When successfully connected</p>
         </li>
         
         
-        <li id="section-5">
+        <li id="section-6">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-5">&#182;</a>
+                <a class="pilcrow" href="#section-6">&#182;</a>
               </div>
               <p>If the connection throws an error</p>
 
@@ -106,11 +167,11 @@ When successfully connected</p>
         </li>
         
         
-        <li id="section-6">
+        <li id="section-7">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-6">&#182;</a>
+                <a class="pilcrow" href="#section-7">&#182;</a>
               </div>
               <p>When the connection is disconnected</p>
 
@@ -123,11 +184,11 @@ When successfully connected</p>
         </li>
         
         
-        <li id="section-7">
+        <li id="section-8">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-7">&#182;</a>
+                <a class="pilcrow" href="#section-8">&#182;</a>
               </div>
               <p>Disconnect when process ends</p>
 
@@ -143,11 +204,26 @@ When successfully connected</p>
         </li>
         
         
-        <li id="section-8">
+        <li id="section-9">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-8">&#182;</a>
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>Connects to MongoDb databse</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>mongoose.connect(dbURI);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
               </div>
               <p>create and export Schema</p>
 
@@ -182,11 +258,11 @@ When successfully connected</p>
         </li>
         
         
-        <li id="section-9">
+        <li id="section-11">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-9">&#182;</a>
+                <a class="pilcrow" href="#section-11">&#182;</a>
               </div>
               <p>Export User Model</p>
 

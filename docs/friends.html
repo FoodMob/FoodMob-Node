@@ -11,6 +11,54 @@
   <div id="container">
     <div id="background"></div>
     
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page_wrapper">
+            <div id="jump_page">
+              
+                
+                <a class="source" href="app.html">
+                  app.js
+                </a>
+              
+                
+                <a class="source" href="app.html">
+                  app.js
+                </a>
+              
+                
+                <a class="source" href="db.html">
+                  db.js
+                </a>
+              
+                
+                <a class="source" href="friends.html">
+                  friends.js
+                </a>
+              
+                
+                <a class="source" href="server.html">
+                  server.js
+                </a>
+              
+                
+                <a class="source" href="user_utils.html">
+                  user_utils.js
+                </a>
+              
+                
+                <a class="source" href="yelp.html">
+                  yelp.js
+                </a>
+              
+            </div>
+          </div>
+        </li>
+      </ul>
+    
     <ul class="sections">
         
           <li id="title">
@@ -31,6 +79,10 @@
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-meta">"use strict"</span>;
+<span class="hljs-comment">/**
+ * Api for adding and getting Friends of User
+ */</span>
+
 <span class="hljs-keyword">const</span> <span class="hljs-built_in">Promise</span> = <span class="hljs-built_in">require</span>(<span class="hljs-string">"bluebird"</span>);
 <span class="hljs-keyword">const</span> Auth = <span class="hljs-built_in">require</span>(<span class="hljs-string">"./auth.js"</span>);
 <span class="hljs-keyword">const</span> UserUtils = <span class="hljs-built_in">require</span>(<span class="hljs-string">"./user_utils"</span>);
